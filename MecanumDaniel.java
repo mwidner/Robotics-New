@@ -26,9 +26,9 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
-@TeleOp 
+@TeleOp(name = "Final Bot", group = "control")
 
-public class MecanumDaniel_Copy2 extends LinearOpMode {
+public class MecanumDaniel_Unlaggy extends LinearOpMode {
 
     private DcMotor lF = null;
     private DcMotor rF = null;
@@ -205,9 +205,13 @@ public class MecanumDaniel_Copy2 extends LinearOpMode {
             
             //switch servo based on states
             if(servoState){
-                servoRot = -0.4;
+                servoRot = -0.6;
             } else {
                 servoRot = -0.05;
+            }
+            
+            if(gamepad1.b){
+                servoRot = 0;
             }
             servoRotA = -servoRot+0.5;
             telemetry.addData("servoRotA", servoRotA);
