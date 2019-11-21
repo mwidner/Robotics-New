@@ -29,9 +29,9 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
-@TeleOp(name = "Autonomous Final Build", group = "")
-@Disabled
-public class MecanumDaniel_Unlaggy_auto extends LinearOpMode {
+@Autonomous(name = "Autonomous Final Move Left", group = "Autonomous")
+
+public class AutoFinal_move_left extends LinearOpMode {
     private DcMotor lF = null;
     private DcMotor rF = null;
     private DcMotor lB = null;
@@ -45,28 +45,35 @@ public class MecanumDaniel_Unlaggy_auto extends LinearOpMode {
     
     private double servoRotA = 0;
     private double servoRotB = 0;
-    private double timer = 0;
     private double offset = 0;
     
     private boolean correctionEnabled = false;
     private double deadzone = 0.04;
-    
+    //controller    
     private double leftStickX = 0;
     private double leftStickY = 0;
     private double rightStickX = 0;
-    
+
     private boolean buttonA = false;
     private boolean buttonB = false;
-    
+    //drive
     private double[] motorValues = {0, 0, 0, 0};
     private double[] motorRotation = {0, 0, 0, 0};
-    
+    //gyro
     private double correctionFinal;
     
+    //servo controls
     private boolean[] ButtonStates = {false};
     
+    //time
+    private double autoTimer = 30;
+    private int timerStage = 0;
     
-    //TouchSensor touch
+    //time
+    private ElapsedTime     runtime = new ElapsedTime();
+    private double offsetTime = 0;
+
+    
     BNO055IMU imu;
     Orientation lastAngles = new Orientation();
     private double globalAngle, power = .30, correction;
@@ -76,6 +83,7 @@ public class MecanumDaniel_Unlaggy_auto extends LinearOpMode {
     
         telemetry.addData("Status", "Initialized");
         telemetry.update();
+        
         
         lF = hardwareMap.get(DcMotor.class, "lF");
         rF = hardwareMap.get(DcMotor.class, "rF");
@@ -139,16 +147,24 @@ public class MecanumDaniel_Unlaggy_auto extends LinearOpMode {
         
         sleep(1000);
 
+        offsetTime = runtime.seconds();
+
         while (opModeIsActive()) {
             
             correction = checkDirection();
+            
+            autoTimer = 30-runtime.seconds() + offsetTime;
             
             leftStickY = 0;
             leftStickX = 0;
             rightStickX = 0;
             buttonA = false;
             buttonB = false;
-            
+
+            if(autoTimer>28.5){
+                leftStickX = -0.5;
+            }
+            telemetry.addData("Time left", autoTimer);
             offset -= rightStickX;
             
             correctionFinal = correction*0.01 - offset;
@@ -191,7 +207,7 @@ public class MecanumDaniel_Unlaggy_auto extends LinearOpMode {
 
                 
             }else{
-                mecDrive(leftStickY,rightStickX,leftStickX);
+                mecDrive(leftStickY,-rightStickX,leftStickX);
             }
             
             //servos
@@ -212,7 +228,7 @@ public class MecanumDaniel_Unlaggy_auto extends LinearOpMode {
             
             //switch servo based on states
             if(servoState){
-                servoRot = -0.4;
+                servoRot = -0.6;
             } else {
                 servoRot = -0.05;
             }
@@ -227,7 +243,6 @@ public class MecanumDaniel_Unlaggy_auto extends LinearOpMode {
             telemetry.addData("servoRot", servoRot);
             autoServo.setPosition(servoRotA);
             autoServoLeft.setPosition(servoRotB);
-            timer++;
             
             telemetry.addData("angle", getAngle());
             telemetry.update();
