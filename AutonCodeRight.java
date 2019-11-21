@@ -31,7 +31,7 @@ import com.qualcomm.robotcore.util.Range;
 
 @Autonomous(name = "Autonomous Final Move Right", group = "Autonomous")
 
-public class AutoFinal_move_right extends LinearOpMode {
+public class AutonCodeRight extends LinearOpMode {
     private DcMotor lF = null;
     private DcMotor rF = null;
     private DcMotor lB = null;
