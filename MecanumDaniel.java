@@ -27,7 +27,6 @@ import com.qualcomm.robotcore.util.Range;
 
 @TeleOp 
 
-public class MecanumDaniel extends LinearOpMode {
 
     private DcMotor lF = null;
     private DcMotor rF = null;
@@ -36,14 +35,14 @@ public class MecanumDaniel extends LinearOpMode {
     
     private Servo autoServo = null;
     private Servo autoServoLeft = null;
-    private double servoRot = 0;
+    private double servoRot = -0.1;
     private double servoRotA = 0;
     private double servoRotB = 0;
     private double timer = 0;
     private double offset = 0;
     
-    private boolean correctionEnabled = false;
-    private double deadzone = 3;
+    private boolean correctionEnabled = true;
+    private double deadzone = 0.04;
     
     private double leftStickX = 0;
     private double leftStickY = 0;
@@ -138,11 +137,16 @@ public class MecanumDaniel extends LinearOpMode {
             
             offset -= rightStickX;
             
-            correctionFinal = correction + offset;
+            correctionFinal = correction*0.01 - offset;
             telemetry.addData("correction with offset", correctionFinal);
             
             //gyro correction deadzone
             if(correction < -deadzone){
+                lF.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                rF.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                lB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                rB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
                 correctionFinal -= deadzone;
             }else if(correction > deadzone){
                 correctionFinal += deadzone;
@@ -153,19 +157,20 @@ public class MecanumDaniel extends LinearOpMode {
             telemetry.addData("adjusted correction", correctionFinal);
             
             if(correctionEnabled == true){
-                mecDrive(leftStickY,-correctionFinal,leftStickX);
+                mecDrive(leftStickY,-correctionFinal+rightStickX,leftStickX);
             }else{
-                mecDrive(leftStickY,-rightStickX,leftStickX);
+                mecDrive(leftStickY,rightStickX,leftStickX);
             }
             
+            //servos
             servoRot += (gamepad1.left_trigger - gamepad1.right_trigger)*0.04;
-            servoRotA = Math.max(Math.min(servoRot, 0.1), -0.5);
+            servoRotA = servoRot;
             telemetry.addData("servoRotA", servoRotA);
-            servoRotB = Math.max(Math.min(servoRot, 0.1), -0.5);
+            servoRotB = -servoRot;
             telemetry.addData("servoRotB", servoRotB);
             telemetry.addData("servoRot", servoRot);
-            autoServo.setPosition(0.1);
-            autoServoLeft.setPosition(0.1);
+            autoServo.setPosition(servoRotA);
+            autoServoLeft.setPosition(servoRotB+0.1);
             timer++;
             
             telemetry.addData("angle", getAngle());
@@ -180,26 +185,11 @@ public class MecanumDaniel extends LinearOpMode {
         motorValues[2] = forward - turn - strafe;
         motorValues[3] = forward + turn + strafe;
         
-        leftStickX *= 4;
-        leftStickY *= 4;
-        rightStickX *= 4;
-        
-        leftStickX = Math.pow(leftStickX, 5);
-        leftStickY = Math.pow(leftStickY, 5);
-        rightStickX = Math.pow(rightStickX, 5);
-        
-        for(int i=0; i<motorValues.length; i++){
-            //motorValues[i] /= 1.8;
-            //motorValues[i] = Math.pow(motorValues[i], 3);
-            
-            
-            motorRotation[i] += motorValues[i] * 100;
-        }
-        
         lF.setPower(motorValues[0]);
         rF.setPower(motorValues[1]);
         lB.setPower(motorValues[2]);
         rB.setPower(motorValues[3]);
+        
         
         /*lF.setTargetPosition((int) motorRotation[0]);
         rF.setTargetPosition((int) motorRotation[1]);
@@ -226,7 +216,7 @@ public class MecanumDaniel extends LinearOpMode {
     }
     
     private double checkDirection(){
-        double correction, angle, gain = .1;
+        double correction, angle, gain = 1;
         
         
         angle = getAngle();
