@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import org.firstinspires.ftc.robotcore.external.State;
 import com.qualcomm.robotcore.hardware.CRServo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Rotation;
@@ -27,6 +28,7 @@ import com.qualcomm.robotcore.util.Range;
 
 @TeleOp 
 
+public class MecanumDaniel_Copy2 extends LinearOpMode {
 
     private DcMotor lF = null;
     private DcMotor rF = null;
@@ -35,13 +37,16 @@ import com.qualcomm.robotcore.util.Range;
     
     private Servo autoServo = null;
     private Servo autoServoLeft = null;
-    private double servoRot = -0.1;
+    private double servoRot = -0.4;
+    
+    private boolean servoState = true;
+    
     private double servoRotA = 0;
     private double servoRotB = 0;
     private double timer = 0;
     private double offset = 0;
     
-    private boolean correctionEnabled = true;
+    private boolean correctionEnabled = false;
     private double deadzone = 0.04;
     
     private double leftStickX = 0;
@@ -52,6 +57,8 @@ import com.qualcomm.robotcore.util.Range;
     private double[] motorRotation = {0, 0, 0, 0};
     
     private double correctionFinal;
+    
+    private boolean[] ButtonStates = {false};
     
     
     //TouchSensor touch
@@ -148,6 +155,12 @@ import com.qualcomm.robotcore.util.Range;
                 rB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
                 correctionFinal -= deadzone;
+                
+                lF.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                rF.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                lB.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                rB.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
             }else if(correction > deadzone){
                 correctionFinal += deadzone;
             }else if(Math.abs(correction) < deadzone){
@@ -157,20 +170,52 @@ import com.qualcomm.robotcore.util.Range;
             telemetry.addData("adjusted correction", correctionFinal);
             
             if(correctionEnabled == true){
-                mecDrive(leftStickY,-correctionFinal+rightStickX,leftStickX);
+                lF.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                rF.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                lB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                rB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+                
+                mecDrive(leftStickY,-correctionFinal,leftStickX);
+                lF.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                rF.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                lB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                rB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+                
             }else{
                 mecDrive(leftStickY,rightStickX,leftStickX);
             }
             
             //servos
-            servoRot += (gamepad1.left_trigger - gamepad1.right_trigger)*0.04;
-            servoRotA = servoRot;
+            //switch states
+            if(gamepad1.a && ButtonStates[0] == false){
+                if(servoState){
+                    servoState = false;
+                }else{
+                    servoState = true;
+                }
+            }
+            
+            if(gamepad1.a){
+                ButtonStates[0] = true;
+            } else {
+                ButtonStates[0] = false;
+            }
+            
+            //switch servo based on states
+            if(servoState){
+                servoRot = -0.4;
+            } else {
+                servoRot = -0.05;
+            }
+            servoRotA = -servoRot+0.5;
             telemetry.addData("servoRotA", servoRotA);
-            servoRotB = -servoRot;
+            servoRotB = servoRot+0.5;
             telemetry.addData("servoRotB", servoRotB);
             telemetry.addData("servoRot", servoRot);
             autoServo.setPosition(servoRotA);
-            autoServoLeft.setPosition(servoRotB+0.1);
+            autoServoLeft.setPosition(servoRotB);
             timer++;
             
             telemetry.addData("angle", getAngle());
@@ -185,11 +230,26 @@ import com.qualcomm.robotcore.util.Range;
         motorValues[2] = forward - turn - strafe;
         motorValues[3] = forward + turn + strafe;
         
+        leftStickX *= 4;
+        leftStickY *= 4;
+        rightStickX *= 4;
+        
+        leftStickX = Math.pow(leftStickX, 5);
+        leftStickY = Math.pow(leftStickY, 5);
+        rightStickX = Math.pow(rightStickX, 5);
+        
+        for(int i=0; i<motorValues.length; i++){
+            //motorValues[i] /= 1.8;
+            //motorValues[i] = Math.pow(motorValues[i], 3);
+            
+            
+            //motorRotation[i] += motorValues[i] * 100;
+        }
+        
         lF.setPower(motorValues[0]);
         rF.setPower(motorValues[1]);
         lB.setPower(motorValues[2]);
         rB.setPower(motorValues[3]);
-        
         
         /*lF.setTargetPosition((int) motorRotation[0]);
         rF.setTargetPosition((int) motorRotation[1]);
@@ -227,7 +287,7 @@ import com.qualcomm.robotcore.util.Range;
             correction = -angle;
         }
         
-        correction = correction*gain + offset;
+        correction = correction*gain;
         
         return correction;
         
