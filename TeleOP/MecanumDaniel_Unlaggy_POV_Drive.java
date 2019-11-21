@@ -64,7 +64,11 @@ public class MecanumDaniel_Unlaggy_POV_Drive extends LinearOpMode {
     private double correctionFinal;
     
     private boolean[] ButtonStates = {false, false};
-    
+
+    private double joyIntensity;
+    private double joyAngle;
+    private double xAngleOut;
+    private double yAngleOut;
     
     //TouchSensor touch
     BNO055IMU imu;
@@ -328,12 +332,16 @@ public class MecanumDaniel_Unlaggy_POV_Drive extends LinearOpMode {
         
     }
 
-    private double[] calculateAngleFilter(double xA, double yA, double rA) {
-        double intensity = Math.sqrt(xA*xA + yA*yA);
-        double angle = Math.atan2(yA, xA);
-        double newX = Math.cos(angle+rA)*intensity;
-        double newY = Math.sin(angle+rA)*intensity;
-        return new double[] {newX, newY};
+    private double[] calculateAngleFilter(double xAngleIn, double yAngleIn, double rAngleIn, boolean outputMode) {
+        joyIntensity = Math.sqrt(xAngleIn*xAngleIn + yAngleIn*yAngleIn);
+        joyAngle = Math.atan2(yAngleIn, xAngleIn);
+        xAngleOut = Math.cos(joyAngle+rAngleIn)*joyIntensity;
+        yAngleOut = Math.sin(joyAngle+rAngleIn)*joyIntensity;
+	if(outputMode == false){
+            return xAngleOut;
+	}else{
+	    return yAngleOut;
+	}
     }
 
 
