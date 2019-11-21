@@ -118,18 +118,7 @@ public class MecanumDaniel_Unlaggy_POV_Drive extends LinearOpMode {
         lB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         
-        
-        /*lF.setTargetPosition(0);
-        rF.setTargetPosition(0);
-        lB.setTargetPosition(0);
-        rB.setTargetPosition(0);
-
-        
-        lF.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        rF.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        lB.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        rB.setMode(DcMotor.RunMode.RUN_TO_POSITION);*/
-        
+                
         //wait until gyro calibrated
         while(!isStopRequested() && !imu.isGyroCalibrated()){
             sleep(50);
@@ -200,8 +189,6 @@ public class MecanumDaniel_Unlaggy_POV_Drive extends LinearOpMode {
                 //filter & apply joystick
                 leftStickX = calculateAngleFilter(leftStickX, leftStickY, correction, false);
                 leftStickY = calculateAngleFilter(leftStickX, leftStickY, correction, false);
-                telemetry.addData("Input", correction / 360 * Math.PI);
-                telemetry.addData("Raw", correction);
             }
 
             if(correctionEnabled == true){
@@ -249,15 +236,10 @@ public class MecanumDaniel_Unlaggy_POV_Drive extends LinearOpMode {
                 servoRot = 0;
             }
             servoRotA = -servoRot+0.5;
-            telemetry.addData("servoRotA", servoRotA);
             servoRotB = servoRot+0.5;
-            telemetry.addData("servoRotB", servoRotB);
-            telemetry.addData("servoRot", servoRot);
             autoServo.setPosition(servoRotA);
             autoServoLeft.setPosition(servoRotB);
             timer++;
-            
-            telemetry.addData("angle", getAngle());
             telemetry.update();
             
         }
